@@ -85,7 +85,8 @@ body {
 }
 .task:focus { outline: 2px solid var(--neon-cyan); box-shadow: 0 0 8px rgba(0,229,255,.6); }
 .task.highlight { border-color: var(--neon-pink); box-shadow: 0 0 8px rgba(255,0,255,.7); }
-.task .text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.task .text { overflow: hidden; text-overflow: ellipsis; }
+.task .text > div:first-child { font-weight: 600; }
 
 .status {
   display: inline-flex; align-items: center; justify-content: center;
@@ -116,3 +117,5 @@ body {
   .task { grid-template-columns: 24px 1fr 24px 24px; }
 }
 
+.loading { position: fixed; inset: 0; display: grid; place-items: center; background: rgba(5, 10, 22, 0.6); color: var(--neon-cyan); font-family: Orbitron; font-size: 18px; z-index: 20; backdrop-filter: blur(2px); }
+.hidden { display: none !important; }

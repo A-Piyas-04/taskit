@@ -1,28 +1,65 @@
-const BASE = '';
+const KEY_CATS = 'taskit:cats';
 
-async function request(path, options = {}) {
-  const res = await fetch(`/api${path}`, {
-    headers: { 'Content-Type': 'application/json' },
-    ...options,
-  });
-  if (!res.ok) throw new Error(await res.text());
-  const ct = res.headers.get('content-type') || '';
-  if (ct.includes('application/json')) return res.json();
-  return res.text();
+function readCatsList() {
+  try {
+    const raw = localStorage.getItem(KEY_CATS);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
 }
 
+function writeCatsList(list) {
+  localStorage.setItem(KEY_CATS, JSON.stringify(list));
+}
+
+function catKey(name) { return `taskit:category:${name}`; }
+
 export const api = {
-  async ping() { return request('/ping'); },
-  async getCategories() { return request('/categories'); },
-  async getCategory(name) { return request(`/category/${encodeURIComponent(name)}`); },
+  async ping() { return { ok: true }; },
+  async getCategories() {
+    const names = readCatsList();
+    const cats = names.map(n => {
+      try {
+        const raw = localStorage.getItem(catKey(n));
+        const obj = raw ? JSON.parse(raw) : null;
+        return obj || { name: n, hidden: false, tasks: [] };
+      } catch {
+        return { name: n, hidden: false, tasks: [] };
+      }
+    });
+    return cats;
+  },
+  async getCategory(name) {
+    try {
+      const raw = localStorage.getItem(catKey(name));
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  },
   async saveCategory(name, body) {
-    return request(`/category/${encodeURIComponent(name)}`, { method: 'PUT', body: JSON.stringify(body) });
+    const names = readCatsList();
+    if (!names.includes(name)) {
+      names.push(name);
+      writeCatsList(names);
+    }
+    localStorage.setItem(catKey(name), JSON.stringify({ name, hidden: !!body.hidden, tasks: Array.isArray(body.tasks) ? body.tasks : [] }));
+    return { ok: true };
   },
   async createCategory(name, body) {
-    return request(`/category/${encodeURIComponent(name)}`, { method: 'POST', body: JSON.stringify(body) });
+    const names = readCatsList();
+    if (!names.includes(name)) {
+      names.push(name);
+      writeCatsList(names);
+    }
+    localStorage.setItem(catKey(name), JSON.stringify({ name, hidden: !!body.hidden, tasks: Array.isArray(body.tasks) ? body.tasks : [] }));
+    return { ok: true };
   },
   async deleteCategory(name) {
-    return request(`/category/${encodeURIComponent(name)}`, { method: 'DELETE' });
+    const names = readCatsList().filter(n => n !== name);
+    writeCatsList(names);
+    localStorage.removeItem(catKey(name));
+    return { ok: true };
   },
 };
-

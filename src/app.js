@@ -13,18 +13,9 @@ const btnNewCategory = document.getElementById('btnNewCategory');
 const searchInput = document.getElementById('searchInput');
 
 async function init() {
-  await ensureServerReady();
   await loadCategories();
   bindEvents();
   showToast('Welcome to TaskIt');
-}
-
-async function ensureServerReady() {
-  try {
-    await api.ping();
-  } catch (e) {
-    showToast('Server not reachable. Starting without persistence.');
-  }
 }
 
 async function loadCategories() {
@@ -61,7 +52,9 @@ function renderBoard() {
     });
 
     const tasksContainer = column.querySelector('.tasks');
-    (cat.tasks || []).filter(t => t.text.toLowerCase().includes(query)).forEach(task => {
+    (cat.tasks || [])
+      .filter(t => (t.title + ' ' + (t.description || '')).toLowerCase().includes(query))
+      .forEach(task => {
       const taskEl = createTaskEl(task, {
         onToggleStatus: async () => {
           task.done = !task.done;
@@ -76,11 +69,13 @@ function renderBoard() {
           taskEl.classList.toggle('highlight', task.highlight);
         },
         onEdit: async () => {
-          const text = await openModalTask(task.text);
-          if (text) {
-            task.text = text;
+          const updated = await openModalTask(task);
+          if (updated) {
+            task.title = updated.title;
+            task.description = updated.description;
+            task.due = updated.due;
             await persistTasks(cat);
-            taskEl.querySelector('.text').textContent = text;
+            renderBoard();
             showToast('Task updated');
           }
         },
@@ -91,6 +86,19 @@ function renderBoard() {
           await persistTasks(cat);
           taskEl.remove();
           showToast('Task deleted');
+        },
+        onDragStart: () => {},
+        onDrop: async (srcId, targetId) => {
+          if (srcId === targetId) return;
+          const arr = cat.tasks || [];
+          const srcIdx = arr.findIndex(t => t.id === srcId);
+          const tgtIdx = arr.findIndex(t => t.id === targetId);
+          if (srcIdx === -1 || tgtIdx === -1) return;
+          const [item] = arr.splice(srcIdx, 1);
+          arr.splice(tgtIdx, 0, item);
+          cat.tasks = arr;
+          await persistTasks(cat);
+          renderBoard();
         }
       });
       tasksContainer.appendChild(taskEl);
@@ -101,11 +109,11 @@ function renderBoard() {
 }
 
 async function onAddTask(categoryName) {
-  const text = await openModalTask('');
-  if (!text) return;
+  const payload = await openModalTask(null);
+  if (!payload) return;
   const cat = state.categories.find(c => c.name === categoryName);
   cat.tasks = cat.tasks || [];
-  cat.tasks.unshift({ id: Date.now(), text, done: false, highlight: false });
+  cat.tasks.unshift({ id: Date.now(), title: payload.title, description: payload.description, due: payload.due, done: false, highlight: false });
   await persistTasks(cat);
   renderBoard();
   showToast('Task added');
@@ -155,4 +163,3 @@ function bindEvents() {
 }
 
 init();
-

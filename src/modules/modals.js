@@ -16,20 +16,33 @@ export function openModalCategory() {
   });
 }
 
-export function openModalTask(text = '') {
+export function openModalTask(existing = null) {
   return new Promise((resolve) => {
-    const input = document.getElementById('taskText');
+    const tTitle = document.getElementById('taskTitle');
+    const tDesc = document.getElementById('taskDesc');
+    const tDue = document.getElementById('taskDue');
     const title = document.getElementById('taskModalTitle');
-    title.textContent = text ? 'Edit Task' : 'New Task';
-    input.value = text || '';
+    const isEdit = !!existing;
+    title.textContent = isEdit ? 'Edit Task' : 'New Task';
+    tTitle.value = existing?.title || '';
+    tDesc.value = existing?.description || '';
+    tDue.value = existing?.due || '';
     mTask.showModal();
     const onClose = () => {
       mTask.removeEventListener('close', onClose);
-      const val = mTask.returnValue === 'default' ? input.value.trim() : null;
-      resolve(val || null);
+      if (mTask.returnValue === 'default') {
+        const payload = {
+          title: tTitle.value.trim(),
+          description: tDesc.value.trim(),
+          due: tDue.value || '',
+        };
+        resolve(payload.title ? payload : null);
+      } else {
+        resolve(null);
+      }
     };
     mTask.addEventListener('close', onClose);
-    input.focus();
+    tTitle.focus();
   });
 }
 
@@ -48,4 +61,3 @@ export function confirmDialog(message) {
     document.getElementById('confirmProceed').focus();
   });
 }
-
