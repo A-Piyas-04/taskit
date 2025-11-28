@@ -24,6 +24,7 @@
     <main id="board" class="board" role="main" aria-label="Task board"></main>
 
     <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <div id="loading" class="loading hidden" aria-live="polite" aria-busy="true">Loading…</div>
 
     <dialog id="modal-category" class="modal" aria-label="Create category">
       <form method="dialog" class="modal-content">
@@ -40,8 +41,12 @@
     <dialog id="modal-task" class="modal" aria-label="Create or edit task">
       <form method="dialog" class="modal-content">
         <h2 id="taskModalTitle">New Task</h2>
-        <label for="taskText">Task</label>
-        <input id="taskText" name="taskText" type="text" required maxlength="200" />
+        <label for="taskTitle">Title</label>
+        <input id="taskTitle" name="taskTitle" type="text" required maxlength="120" />
+        <label for="taskDesc">Description</label>
+        <input id="taskDesc" name="taskDesc" type="text" maxlength="300" />
+        <label for="taskDue">Due Date</label>
+        <input id="taskDue" name="taskDue" type="date" />
         <menu class="modal-actions">
           <button value="cancel" class="btn">Cancel</button>
           <button id="confirmSaveTask" value="default" class="btn neon">Save</button>
@@ -67,4 +72,3 @@
     <script type="module" src="src/app.js"></script>
   </body>
   </html>
-

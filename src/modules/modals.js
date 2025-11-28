@@ -9,6 +9,7 @@ export function openModalCategory() {
     mCat.showModal();
     const onClose = (e) => {
       mCat.removeEventListener('close', onClose);
+      // validate non-empty trimmed name
       resolve(mCat.returnValue === 'default' && input.value.trim() ? input.value.trim() : null);
     };
     mCat.addEventListener('close', onClose);
@@ -31,6 +32,7 @@ export function openModalTask(existing = null) {
     const onClose = () => {
       mTask.removeEventListener('close', onClose);
       if (mTask.returnValue === 'default') {
+        // build payload and require title
         const payload = {
           title: tTitle.value.trim(),
           description: tDesc.value.trim(),

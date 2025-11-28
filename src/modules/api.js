@@ -1,5 +1,7 @@
+// localStorage keys and helpers
 const KEY_CATS = 'taskit:cats';
 
+// read the category name list
 function readCatsList() {
   try {
     const raw = localStorage.getItem(KEY_CATS);
@@ -9,15 +11,18 @@ function readCatsList() {
   }
 }
 
+// write the category name list
 function writeCatsList(list) {
   localStorage.setItem(KEY_CATS, JSON.stringify(list));
 }
 
+// per-category storage key
 function catKey(name) { return `taskit:category:${name}`; }
 
 export const api = {
   async ping() { return { ok: true }; },
   async getCategories() {
+    // load all categories using the name list
     const names = readCatsList();
     const cats = names.map(n => {
       try {
@@ -39,6 +44,7 @@ export const api = {
     }
   },
   async saveCategory(name, body) {
+    // upsert a category and ensure it's tracked in the name list
     const names = readCatsList();
     if (!names.includes(name)) {
       names.push(name);
@@ -48,6 +54,7 @@ export const api = {
     return { ok: true };
   },
   async createCategory(name, body) {
+    // create category (same as save) and track in name list
     const names = readCatsList();
     if (!names.includes(name)) {
       names.push(name);
@@ -57,6 +64,7 @@ export const api = {
     return { ok: true };
   },
   async deleteCategory(name) {
+    // remove from localStorage and name list
     const names = readCatsList().filter(n => n !== name);
     writeCatsList(names);
     localStorage.removeItem(catKey(name));

@@ -42,6 +42,7 @@ export function createTaskEl(task, handlers) {
   const el = document.createElement('article');
   el.className = `task${task.highlight ? ' highlight' : ''}`;
   el.tabIndex = 0;
+  el.draggable = true;
 
   const status = document.createElement('button');
   status.className = `status ${task.done ? 'done' : 'todo'}`;
@@ -52,9 +53,18 @@ export function createTaskEl(task, handlers) {
     status.textContent = status.textContent === '✓' ? '✗' : '✓';
   });
 
-  const text = document.createElement('div');
-  text.className = 'text';
-  text.textContent = task.text;
+  const content = document.createElement('div');
+  content.className = 'text';
+  const title = document.createElement('div');
+  title.textContent = task.title;
+  const meta = document.createElement('div');
+  meta.style.fontSize = '12px';
+  meta.style.color = '#8aa0c8';
+  meta.textContent = [task.description, task.due ? `Due: ${task.due}` : ''].filter(Boolean).join(' • ');
+  content.append(title, meta);
+
+  const due = document.createElement('div');
+  due.textContent = task.due ? task.due : '';
 
   const btnHighlight = document.createElement('button');
   btnHighlight.className = 'icon-btn btn-highlight';
@@ -74,7 +84,20 @@ export function createTaskEl(task, handlers) {
   btnDelete.textContent = '🗑';
   btnDelete.addEventListener('click', handlers.onDelete);
 
-  el.append(status, text, btnHighlight, btnEdit, btnDelete);
+  el.append(status, content, btnHighlight, btnEdit, btnDelete);
+
+  el.addEventListener('dragstart', (e) => {
+    e.dataTransfer.setData('text/task-id', String(task.id));
+    handlers.onDragStart && handlers.onDragStart(task);
+  });
+  el.addEventListener('dragover', (e) => {
+    e.preventDefault();
+  });
+  el.addEventListener('drop', (e) => {
+    e.preventDefault();
+    const srcId = Number(e.dataTransfer.getData('text/task-id'));
+    handlers.onDrop && handlers.onDrop(srcId, task.id);
+  });
+
   return el;
 }
-

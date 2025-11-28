@@ -1,5 +1,6 @@
 import { api } from './modules/api.js';
 import { showToast } from './modules/toast.js';
+import { setLoading } from './modules/ui.js';
 import { openModalCategory, openModalTask, confirmDialog } from './modules/modals.js';
 import { createColumnEl, createTaskEl } from './modules/dom.js';
 
@@ -20,6 +21,7 @@ async function init() {
 
 async function loadCategories() {
   try {
+    setLoading(true);
     const categories = await api.getCategories();
     state.categories = categories;
     renderBoard();
@@ -27,6 +29,7 @@ async function loadCategories() {
     state.categories = [];
     renderBoard();
   }
+  finally { setLoading(false); }
 }
 
 function renderBoard() {
@@ -37,14 +40,18 @@ function renderBoard() {
       onAddTask: () => onAddTask(cat.name),
       onToggleHidden: async () => {
         cat.hidden = !cat.hidden;
+        setLoading(true);
         await api.saveCategory(cat.name, cat);
+        setLoading(false);
         renderBoard();
         showToast(`${cat.name} ${cat.hidden ? 'hidden' : 'visible'}`);
       },
       onDeleteCategory: async () => {
         const ok = await confirmDialog(`Delete category '${cat.name}'?`);
         if (!ok) return;
+        setLoading(true);
         await api.deleteCategory(cat.name);
+        setLoading(false);
         state.categories = state.categories.filter(c => c.name !== cat.name);
         renderBoard();
         showToast(`Deleted ${cat.name}`);
@@ -58,14 +65,18 @@ function renderBoard() {
       const taskEl = createTaskEl(task, {
         onToggleStatus: async () => {
           task.done = !task.done;
+          setLoading(true);
           await persistTasks(cat);
+          setLoading(false);
           taskEl.querySelector('.status').classList.toggle('done', task.done);
           taskEl.querySelector('.status').classList.toggle('todo', !task.done);
           showToast(task.done ? 'Marked done' : 'Marked todo');
         },
         onToggleHighlight: async () => {
           task.highlight = !task.highlight;
+          setLoading(true);
           await persistTasks(cat);
+          setLoading(false);
           taskEl.classList.toggle('highlight', task.highlight);
         },
         onEdit: async () => {
@@ -74,7 +85,9 @@ function renderBoard() {
             task.title = updated.title;
             task.description = updated.description;
             task.due = updated.due;
+            setLoading(true);
             await persistTasks(cat);
+            setLoading(false);
             renderBoard();
             showToast('Task updated');
           }
@@ -83,11 +96,14 @@ function renderBoard() {
           const ok = await confirmDialog('Delete task?');
           if (!ok) return;
           cat.tasks = cat.tasks.filter(t => t !== task);
+          setLoading(true);
           await persistTasks(cat);
+          setLoading(false);
           taskEl.remove();
           showToast('Task deleted');
         },
         onDragStart: () => {},
+        // drag-and-drop reorder within the same category
         onDrop: async (srcId, targetId) => {
           if (srcId === targetId) return;
           const arr = cat.tasks || [];
@@ -97,7 +113,9 @@ function renderBoard() {
           const [item] = arr.splice(srcIdx, 1);
           arr.splice(tgtIdx, 0, item);
           cat.tasks = arr;
+          setLoading(true);
           await persistTasks(cat);
+          setLoading(false);
           renderBoard();
         }
       });
@@ -114,7 +132,9 @@ async function onAddTask(categoryName) {
   const cat = state.categories.find(c => c.name === categoryName);
   cat.tasks = cat.tasks || [];
   cat.tasks.unshift({ id: Date.now(), title: payload.title, description: payload.description, due: payload.due, done: false, highlight: false });
+  setLoading(true);
   await persistTasks(cat);
+  setLoading(false);
   renderBoard();
   showToast('Task added');
 }
@@ -134,7 +154,9 @@ function bindEvents() {
     const exists = state.categories.some(c => c.name.toLowerCase() === name.toLowerCase());
     if (exists) { showToast('Category exists'); return; }
     const cat = { name, hidden: false, tasks: [] };
+    setLoading(true);
     await api.createCategory(name, cat);
+    setLoading(false);
     state.categories.unshift(cat);
     renderBoard();
     showToast(`Created ${name}`);
