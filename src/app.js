@@ -3,14 +3,17 @@ import { showToast } from './modules/toast.js';
 import { setLoading } from './modules/ui.js';
 import { openModalCategory, openModalTask, confirmDialog } from './modules/modals.js';
 import { createColumnEl, createTaskEl } from './modules/dom.js';
+import { exportCategoryToTxt, importCategoryFromTxt } from './modules/fs.js';
 
 let state = {
   categories: [],
   selectedCategory: null,
+  showHiddenIndicator: true,
 };
 
 const board = document.getElementById('board');
 const btnNewCategory = document.getElementById('btnNewCategory');
+const btnToggleHidden = document.getElementById('btnToggleHidden');
 const searchInput = document.getElementById('searchInput');
 
 async function init() {
@@ -46,6 +49,24 @@ function renderBoard() {
         renderBoard();
         showToast(`${cat.name} ${cat.hidden ? 'hidden' : 'visible'}`);
       },
+      onExport: async () => {
+        try {
+          await exportCategoryToTxt(cat);
+          showToast('Exported category');
+        } catch (e) { showToast('Export failed'); }
+      },
+      onImport: async () => {
+        try {
+          const imported = await importCategoryFromTxt();
+          if (!imported || !imported.name) { showToast('Invalid file'); return; }
+          const exists = state.categories.some(c => c.name.toLowerCase() === imported.name.toLowerCase());
+          if (exists) { showToast('Category exists'); return; }
+          await api.createCategory(imported.name, imported);
+          state.categories.unshift(imported);
+          renderBoard();
+          showToast(`Imported ${imported.name}`);
+        } catch (e) { showToast('Import failed'); }
+      },
       onDeleteCategory: async () => {
         const ok = await confirmDialog(`Delete category '${cat.name}'?`);
         if (!ok) return;
@@ -56,7 +77,7 @@ function renderBoard() {
         renderBoard();
         showToast(`Deleted ${cat.name}`);
       }
-    });
+    }, { showHiddenIndicator: state.showHiddenIndicator });
 
     const tasksContainer = column.querySelector('.tasks');
     (cat.tasks || [])
@@ -160,6 +181,12 @@ function bindEvents() {
     state.categories.unshift(cat);
     renderBoard();
     showToast(`Created ${name}`);
+  });
+
+  btnToggleHidden.addEventListener('click', () => {
+    state.showHiddenIndicator = !state.showHiddenIndicator;
+    renderBoard();
+    showToast(state.showHiddenIndicator ? 'Hidden indicator on' : 'Hidden indicator off');
   });
 
   searchInput.addEventListener('input', () => renderBoard());

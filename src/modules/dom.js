@@ -1,4 +1,4 @@
-export function createColumnEl(cat, handlers) {
+export function createColumnEl(cat, handlers, opts = { showHiddenIndicator: true }) {
   const column = document.createElement('section');
   column.className = `column${cat.hidden ? ' hidden' : ''}`;
   column.setAttribute('aria-label', `Category ${cat.name}`);
@@ -8,7 +8,7 @@ export function createColumnEl(cat, handlers) {
 
   const title = document.createElement('h2');
   title.className = 'column-title';
-  title.textContent = cat.name + (cat.hidden ? ' (hidden)' : '');
+  title.textContent = cat.name + (cat.hidden && opts.showHiddenIndicator ? ' (hidden)' : '');
 
   const actions = document.createElement('div');
   actions.className = 'column-actions';
@@ -23,12 +23,22 @@ export function createColumnEl(cat, handlers) {
   btnHide.textContent = cat.hidden ? 'Show' : 'Hide';
   btnHide.addEventListener('click', handlers.onToggleHidden);
 
+  const btnExport = document.createElement('button');
+  btnExport.className = 'btn';
+  btnExport.textContent = 'Export';
+  btnExport.addEventListener('click', handlers.onExport);
+
+  const btnImport = document.createElement('button');
+  btnImport.className = 'btn';
+  btnImport.textContent = 'Import';
+  btnImport.addEventListener('click', handlers.onImport);
+
   const btnDelete = document.createElement('button');
   btnDelete.className = 'btn danger';
   btnDelete.textContent = 'Delete';
   btnDelete.addEventListener('click', handlers.onDeleteCategory);
 
-  actions.append(btnAdd, btnHide, btnDelete);
+  actions.append(btnAdd, btnHide, btnExport, btnImport, btnDelete);
   header.append(title, actions);
 
   const tasks = document.createElement('div');

@@ -5,13 +5,20 @@ const mConfirm = document.getElementById('modal-confirm');
 export function openModalCategory() {
   return new Promise((resolve) => {
     const input = document.getElementById('categoryName');
+    const confirmBtn = document.getElementById('confirmCreateCategory');
     input.value = '';
     mCat.showModal();
+    const onConfirm = (e) => {
+      e.preventDefault();
+      mCat.close('default');
+    };
     const onClose = (e) => {
       mCat.removeEventListener('close', onClose);
+      confirmBtn.removeEventListener('click', onConfirm);
       // validate non-empty trimmed name
       resolve(mCat.returnValue === 'default' && input.value.trim() ? input.value.trim() : null);
     };
+    confirmBtn.addEventListener('click', onConfirm);
     mCat.addEventListener('close', onClose);
     input.focus();
   });
@@ -22,6 +29,7 @@ export function openModalTask(existing = null) {
     const tTitle = document.getElementById('taskTitle');
     const tDesc = document.getElementById('taskDesc');
     const tDue = document.getElementById('taskDue');
+    const confirmBtn = document.getElementById('confirmSaveTask');
     const title = document.getElementById('taskModalTitle');
     const isEdit = !!existing;
     title.textContent = isEdit ? 'Edit Task' : 'New Task';
@@ -29,8 +37,13 @@ export function openModalTask(existing = null) {
     tDesc.value = existing?.description || '';
     tDue.value = existing?.due || '';
     mTask.showModal();
+    const onConfirm = (e) => {
+      e.preventDefault();
+      mTask.close('default');
+    };
     const onClose = () => {
       mTask.removeEventListener('close', onClose);
+      confirmBtn.removeEventListener('click', onConfirm);
       if (mTask.returnValue === 'default') {
         // build payload and require title
         const payload = {
@@ -43,6 +56,7 @@ export function openModalTask(existing = null) {
         resolve(null);
       }
     };
+    confirmBtn.addEventListener('click', onConfirm);
     mTask.addEventListener('close', onClose);
     tTitle.focus();
   });
