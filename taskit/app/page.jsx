@@ -3,9 +3,10 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import { subscribeToCategories, addCategory } from '@/lib/firestore';
+import { subscribeToCategories, addCategory, unhideAllCategories } from '@/lib/firestore';
 import CategoryColumn from './components/CategoryColumn';
 import Modal from './components/Modal';
+import ToggleSwitch from './components/ToggleSwitch';
 import { toast } from 'react-hot-toast';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 
@@ -15,6 +16,7 @@ export default function Home() {
     const [categories, setCategories] = useState([]);
     const [isAddCategoryOpen, setIsAddCategoryOpen] = useState(false);
     const [newCategoryName, setNewCategoryName] = useState('');
+    const [newCategoryHighlighted, setNewCategoryHighlighted] = useState(false);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -40,10 +42,11 @@ export default function Home() {
             return;
         }
 
-        const result = await addCategory(user.uid, newCategoryName.trim());
+        const result = await addCategory(user.uid, newCategoryName.trim(), { highlighted: newCategoryHighlighted });
         if (result.success) {
             toast.success('Category created successfully!');
             setNewCategoryName('');
+            setNewCategoryHighlighted(false);
             setIsAddCategoryOpen(false);
         } else {
             toast.error(`Failed to create category: ${result.error}`);
@@ -92,6 +95,22 @@ export default function Home() {
                     <span className="hidden sm:inline">New Category</span>
                     <kbd className="hidden md:inline ml-2 px-2 py-0.5 text-xs bg-cyber-surface rounded border border-cyber-borderSubtle">C</kbd>
                 </button>
+                {hiddenCategories.length > 0 && (
+                    <button
+                        onClick={async () => {
+                            const res = await unhideAllCategories(user.uid);
+                            if (res.success) toast.success(`Unhid ${res.updated} categories`);
+                            else toast.error(`Failed to unhide: ${res.error}`);
+                        }}
+                        className="btn btn-secondary flex items-center gap-2"
+                        aria-label="Unhide all hidden categories"
+                    >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029M9 9l6 6" />
+                        </svg>
+                        Unhide All
+                    </button>
+                )}
             </div>
 
             {/* Categories Grid */}
@@ -172,12 +191,21 @@ export default function Home() {
                             {newCategoryName.length}/50 characters
                         </p>
                     </div>
+                    <div>
+                        <ToggleSwitch
+                            checked={newCategoryHighlighted}
+                            onChange={(e) => setNewCategoryHighlighted(e.target.checked)}
+                            label="Highlight category"
+                        />
+                        <p className="mt-2 text-xs text-cyber-textMuted">Highlights the category header.</p>
+                    </div>
                     <div className="flex justify-end gap-3">
                         <button
                             type="button"
                             onClick={() => {
                                 setIsAddCategoryOpen(false);
                                 setNewCategoryName('');
+                                setNewCategoryHighlighted(false);
                             }}
                             className="btn btn-secondary"
                         >

@@ -52,7 +52,7 @@ export const subscribeToCategories = (userId, callback) => {
     });
 };
 
-export const addCategory = async (userId, name) => {
+export const addCategory = async (userId, name, options = {}) => {
     if (!userId) return { success: false, error: 'User not authenticated', code: 'auth_required' };
 
     const v = validateCategoryName(name);
@@ -72,11 +72,33 @@ export const addCategory = async (userId, name) => {
             name: v.value,
             normalizedName,
             hidden: false,
+            highlighted: !!options.highlighted,
             createdAt: serverTimestamp()
         });
         return { success: true, id: docRef.id };
     } catch (error) {
         await logError({ userId, module: 'categories', operation: 'add', context: { name }, error, type: ErrorType.Database });
+        return { success: false, error: error.message, code: error.code || 'db_error' };
+    }
+};
+
+export const unhideAllCategories = async (userId) => {
+    try {
+        const q = query(collection(db, 'categories'), where('userId', '==', userId), where('hidden', '==', true));
+        const snap = await getDocs(q);
+        if (snap.empty) return { success: true, updated: 0 };
+        const chunkSize = 400;
+        const docs = snap.docs;
+        let updated = 0;
+        for (let i = 0; i < docs.length; i += chunkSize) {
+            const batch = writeBatch(db);
+            const chunk = docs.slice(i, i + chunkSize);
+            chunk.forEach(d => { batch.update(d.ref, { hidden: false }); updated++; });
+            await batch.commit();
+        }
+        return { success: true, updated };
+    } catch (error) {
+        await logError({ userId, module: 'categories', operation: 'unhide_all', error, type: ErrorType.Database });
         return { success: false, error: error.message, code: error.code || 'db_error' };
     }
 };
@@ -92,28 +114,43 @@ export const updateCategory = async (categoryId, updates) => {
     }
 };
 
-export const deleteCategory = async (categoryId) => {
+export const deleteCategory = async (categoryId, userId = null) => {
     try {
-        const batch = writeBatch(db);
-        const tasksQuery = query(collection(db, 'tasks'), where('categoryId', '==', categoryId));
+        const constraints = [where('categoryId', '==', categoryId)];
+        if (userId) constraints.push(where('userId', '==', userId));
+        const tasksQuery = query(collection(db, 'tasks'), ...constraints);
         const tasksSnapshot = await getDocs(tasksQuery);
-        tasksSnapshot.docs.forEach(taskDoc => batch.delete(taskDoc.ref));
-        batch.delete(doc(db, 'categories', categoryId));
-        await batch.commit();
+        const taskDocs = tasksSnapshot.docs;
+
+        const chunkSize = 400;
+        if (taskDocs.length > 0) {
+            for (let i = 0; i < taskDocs.length; i += chunkSize) {
+                const batch = writeBatch(db);
+                const chunk = taskDocs.slice(i, i + chunkSize);
+                chunk.forEach(taskDoc => batch.delete(taskDoc.ref));
+                if (i + chunkSize >= taskDocs.length) {
+                    batch.delete(doc(db, 'categories', categoryId));
+                }
+                await batch.commit();
+            }
+        } else {
+            const batch = writeBatch(db);
+            batch.delete(doc(db, 'categories', categoryId));
+            await batch.commit();
+        }
         return { success: true };
     } catch (error) {
-        await logError({ module: 'categories', operation: 'delete', context: { categoryId }, error, type: ErrorType.Database });
+        await logError({ module: 'categories', operation: 'delete', context: { categoryId, userId }, error, type: ErrorType.Database });
         return { success: false, error: error.message, code: error.code || 'db_error' };
     }
 };
 
 // ==================== TASKS ====================
 
-export const subscribeToTasks = (categoryId, callback) => {
-    const q = query(
-        collection(db, 'tasks'),
-        where('categoryId', '==', categoryId)
-    );
+export const subscribeToTasks = (categoryId, callback, userId = null) => {
+    const constraints = [where('categoryId', '==', categoryId)];
+    if (userId) constraints.push(where('userId', '==', userId));
+    const q = query(collection(db, 'tasks'), ...constraints);
 
     return onSnapshot(q, (snapshot) => {
         const tasks = [];
@@ -133,7 +170,7 @@ export const subscribeToTasks = (categoryId, callback) => {
 
         callback(tasks);
     }, (error) => {
-        logError({ module: 'tasks', operation: 'subscribe', context: { categoryId }, error, type: ErrorType.Database });
+        logError({ module: 'tasks', operation: 'subscribe', context: { categoryId, userId }, error, type: ErrorType.Database });
         callback([]);
     });
 };
