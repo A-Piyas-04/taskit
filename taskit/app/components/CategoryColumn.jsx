@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useAuth } from '@/context/AuthContext';
 import { subscribeToTasks, addTask, updateCategory, deleteCategory } from '@/lib/firestore';
 import TaskItem from './TaskItem';
 import Modal from './Modal';
@@ -10,6 +11,7 @@ import { toast } from 'react-hot-toast';
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
 
 export default function CategoryColumn({ category, index }) {
+    const { user } = useAuth();
     const [tasks, setTasks] = useState([]);
     const [isAddTaskOpen, setIsAddTaskOpen] = useState(false);
     const [isDeleteOpen, setIsDeleteOpen] = useState(false);
@@ -30,7 +32,7 @@ export default function CategoryColumn({ category, index }) {
             return;
         }
 
-        const result = await addTask(category.id, newTaskText.trim());
+        const result = await addTask(user.uid, category.id, newTaskText.trim());
         if (result.success) {
             toast.success('Task added successfully!');
             setNewTaskText('');

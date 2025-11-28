@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
 import { subscribeToCategories, addCategory } from '@/lib/firestore';
 import CategoryColumn from './components/CategoryColumn';
 import Modal from './components/Modal';
@@ -8,18 +10,28 @@ import { toast } from 'react-hot-toast';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 
 export default function Home() {
+    const { user, loading: authLoading } = useAuth();
+    const router = useRouter();
     const [categories, setCategories] = useState([]);
     const [isAddCategoryOpen, setIsAddCategoryOpen] = useState(false);
     const [newCategoryName, setNewCategoryName] = useState('');
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const unsubscribe = subscribeToCategories((data) => {
+        if (!authLoading && !user) {
+            router.push('/login');
+        }
+    }, [user, authLoading, router]);
+
+    useEffect(() => {
+        if (!user) return;
+
+        const unsubscribe = subscribeToCategories(user.uid, (data) => {
             setCategories(data);
             setLoading(false);
         });
         return () => unsubscribe();
-    }, []);
+    }, [user]);
 
     const handleAddCategory = async (e) => {
         e.preventDefault();
@@ -28,7 +40,7 @@ export default function Home() {
             return;
         }
 
-        const result = await addCategory(newCategoryName.trim());
+        const result = await addCategory(user.uid, newCategoryName.trim());
         if (result.success) {
             toast.success('Category created successfully!');
             setNewCategoryName('');
@@ -37,6 +49,16 @@ export default function Home() {
             toast.error(`Failed to create category: ${result.error}`);
         }
     };
+
+    if (authLoading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <div className="w-16 h-16 border-4 border-cyber-primary border-t-transparent rounded-full animate-spin"></div>
+            </div>
+        );
+    }
+
+    if (!user) return null;
 
     // Keyboard shortcuts
     useKeyboardShortcuts({

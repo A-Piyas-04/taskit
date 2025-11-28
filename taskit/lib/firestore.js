@@ -15,13 +15,33 @@ import {
 
 // ==================== CATEGORIES ====================
 
-export const subscribeToCategories = (callback) => {
-    const q = query(collection(db, 'categories'), orderBy('createdAt', 'asc'));
+export const subscribeToCategories = (userId, callback) => {
+    if (!userId) {
+        callback([]);
+        return () => { };
+    }
+
+    const q = query(
+        collection(db, 'categories'),
+        where('userId', '==', userId)
+    );
+
     return onSnapshot(q, (snapshot) => {
         const categories = [];
         snapshot.forEach((doc) => {
             categories.push({ id: doc.id, ...doc.data() });
         });
+
+        // Client-side sort to avoid composite index requirement
+        categories.sort((a, b) => {
+            const getMillis = (item) => {
+                if (!item.createdAt) return Date.now(); // Assume new if pending
+                if (typeof item.createdAt.toMillis === 'function') return item.createdAt.toMillis();
+                return 0;
+            };
+            return getMillis(a) - getMillis(b);
+        });
+
         callback(categories);
     }, (error) => {
         console.error('Error subscribing to categories:', error);
@@ -29,9 +49,12 @@ export const subscribeToCategories = (callback) => {
     });
 };
 
-export const addCategory = async (name) => {
+export const addCategory = async (userId, name) => {
+    if (!userId) return { success: false, error: 'User not authenticated' };
+
     try {
         const docRef = await addDoc(collection(db, 'categories'), {
+            userId,
             name,
             hidden: false,
             createdAt: serverTimestamp()
@@ -76,8 +99,7 @@ export const deleteCategory = async (categoryId) => {
 export const subscribeToTasks = (categoryId, callback) => {
     const q = query(
         collection(db, 'tasks'),
-        where('categoryId', '==', categoryId),
-        orderBy('createdAt', 'asc')
+        where('categoryId', '==', categoryId)
     );
 
     return onSnapshot(q, (snapshot) => {
@@ -85,6 +107,17 @@ export const subscribeToTasks = (categoryId, callback) => {
         snapshot.forEach((doc) => {
             tasks.push({ id: doc.id, ...doc.data() });
         });
+
+        // Client-side sort to avoid composite index requirement
+        tasks.sort((a, b) => {
+            const getMillis = (item) => {
+                if (!item.createdAt) return Date.now(); // Assume new if pending
+                if (typeof item.createdAt.toMillis === 'function') return item.createdAt.toMillis();
+                return 0;
+            };
+            return getMillis(a) - getMillis(b);
+        });
+
         callback(tasks);
     }, (error) => {
         console.error('Error subscribing to tasks:', error);
@@ -92,9 +125,12 @@ export const subscribeToTasks = (categoryId, callback) => {
     });
 };
 
-export const addTask = async (categoryId, text) => {
+export const addTask = async (userId, categoryId, text) => {
+    if (!userId) return { success: false, error: 'User not authenticated' };
+
     try {
         const docRef = await addDoc(collection(db, 'tasks'), {
+            userId,
             categoryId,
             text,
             completed: false,
