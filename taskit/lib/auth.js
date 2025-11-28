@@ -13,6 +13,8 @@ import {
     serverTimestamp
 } from "firebase/firestore";
 import { auth, db } from "./firebase";
+import { logError, ErrorType } from './logging';
+import { validateCredentials } from './validation';
 
 const googleProvider = new GoogleAuthProvider();
 
@@ -26,7 +28,7 @@ export const signInWithGoogle = async () => {
 
         return user;
     } catch (err) {
-        console.error(err);
+        await logError({ module: 'accounts', operation: 'google_sign_in', error: err, type: ErrorType.Auth });
         throw err;
     }
 };
@@ -36,13 +38,19 @@ export const logInWithEmailAndPassword = async (email, password) => {
         const res = await signInWithEmailAndPassword(auth, email, password);
         return res.user;
     } catch (err) {
-        console.error(err);
+        await logError({ module: 'accounts', operation: 'email_login', error: err, type: ErrorType.Auth, context: { email } });
         throw err;
     }
 };
 
 export const registerWithEmailAndPassword = async (name, email, password) => {
     try {
+        const v = validateCredentials({ name, email, password });
+        if (!v.valid) {
+            const error = new Error(v.error);
+            error.code = 'validation_error';
+            throw error;
+        }
         const res = await createUserWithEmailAndPassword(auth, email, password);
         const user = res.user;
 
@@ -54,7 +62,7 @@ export const registerWithEmailAndPassword = async (name, email, password) => {
 
         return user;
     } catch (err) {
-        console.error(err);
+        await logError({ module: 'accounts', operation: 'register', error: err, type: ErrorType.Auth, context: { email } });
         throw err;
     }
 };
@@ -83,7 +91,7 @@ export const createUserProfileDocument = async (userAuth, additionalData = {}) =
                 ...additionalData
             });
         } catch (error) {
-            console.error("Error creating user", error);
+            await logError({ module: 'accounts', operation: 'create_user_profile', error: error, type: ErrorType.Database, context: { uid } });
         }
     }
 

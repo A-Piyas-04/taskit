@@ -1,4 +1,6 @@
 import { db } from './firebase';
+import { logError, ErrorType } from './logging';
+import { validateCategoryName, validateTaskText } from './validation';
 import {
     collection,
     addDoc,
@@ -10,7 +12,8 @@ import {
     where,
     orderBy,
     onSnapshot,
-    serverTimestamp
+    serverTimestamp,
+    writeBatch
 } from 'firebase/firestore';
 
 // ==================== CATEGORIES ====================
@@ -44,25 +47,37 @@ export const subscribeToCategories = (userId, callback) => {
 
         callback(categories);
     }, (error) => {
-        console.error('Error subscribing to categories:', error);
+        logError({ userId, module: 'categories', operation: 'subscribe', error, type: ErrorType.Database });
         callback([]);
     });
 };
 
 export const addCategory = async (userId, name) => {
-    if (!userId) return { success: false, error: 'User not authenticated' };
+    if (!userId) return { success: false, error: 'User not authenticated', code: 'auth_required' };
+
+    const v = validateCategoryName(name);
+    if (!v.valid) return { success: false, error: v.error, code: 'validation_error' };
 
     try {
+        // Enforce uniqueness per user by normalizedName
+        const normalizedName = v.normalized;
+        const dupQ = query(collection(db, 'categories'), where('userId', '==', userId), where('normalizedName', '==', normalizedName));
+        const dupSnap = await getDocs(dupQ);
+        if (!dupSnap.empty) {
+            return { success: false, error: 'Category name already exists', code: 'duplicate_category' };
+        }
+
         const docRef = await addDoc(collection(db, 'categories'), {
             userId,
-            name,
+            name: v.value,
+            normalizedName,
             hidden: false,
             createdAt: serverTimestamp()
         });
         return { success: true, id: docRef.id };
     } catch (error) {
-        console.error('Error adding category:', error);
-        return { success: false, error: error.message };
+        await logError({ userId, module: 'categories', operation: 'add', context: { name }, error, type: ErrorType.Database });
+        return { success: false, error: error.message, code: error.code || 'db_error' };
     }
 };
 
@@ -72,25 +87,23 @@ export const updateCategory = async (categoryId, updates) => {
         await updateDoc(categoryRef, updates);
         return { success: true };
     } catch (error) {
-        console.error('Error updating category:', error);
-        return { success: false, error: error.message };
+        await logError({ module: 'categories', operation: 'update', context: { categoryId, updates }, error, type: ErrorType.Database });
+        return { success: false, error: error.message, code: error.code || 'db_error' };
     }
 };
 
 export const deleteCategory = async (categoryId) => {
     try {
-        // Delete all tasks in this category first
+        const batch = writeBatch(db);
         const tasksQuery = query(collection(db, 'tasks'), where('categoryId', '==', categoryId));
         const tasksSnapshot = await getDocs(tasksQuery);
-        const deletePromises = tasksSnapshot.docs.map(taskDoc => deleteDoc(taskDoc.ref));
-        await Promise.all(deletePromises);
-
-        // Delete the category
-        await deleteDoc(doc(db, 'categories', categoryId));
+        tasksSnapshot.docs.forEach(taskDoc => batch.delete(taskDoc.ref));
+        batch.delete(doc(db, 'categories', categoryId));
+        await batch.commit();
         return { success: true };
     } catch (error) {
-        console.error('Error deleting category:', error);
-        return { success: false, error: error.message };
+        await logError({ module: 'categories', operation: 'delete', context: { categoryId }, error, type: ErrorType.Database });
+        return { success: false, error: error.message, code: error.code || 'db_error' };
     }
 };
 
@@ -120,27 +133,29 @@ export const subscribeToTasks = (categoryId, callback) => {
 
         callback(tasks);
     }, (error) => {
-        console.error('Error subscribing to tasks:', error);
+        logError({ module: 'tasks', operation: 'subscribe', context: { categoryId }, error, type: ErrorType.Database });
         callback([]);
     });
 };
 
 export const addTask = async (userId, categoryId, text) => {
-    if (!userId) return { success: false, error: 'User not authenticated' };
+    if (!userId) return { success: false, error: 'User not authenticated', code: 'auth_required' };
+    const v = validateTaskText(text);
+    if (!v.valid) return { success: false, error: v.error, code: 'validation_error' };
 
     try {
         const docRef = await addDoc(collection(db, 'tasks'), {
             userId,
             categoryId,
-            text,
+            text: v.value,
             completed: false,
             highlighted: false,
             createdAt: serverTimestamp()
         });
         return { success: true, id: docRef.id };
     } catch (error) {
-        console.error('Error adding task:', error);
-        return { success: false, error: error.message };
+        await logError({ userId, module: 'tasks', operation: 'add', context: { categoryId }, error, type: ErrorType.Database });
+        return { success: false, error: error.message, code: error.code || 'db_error' };
     }
 };
 
@@ -150,8 +165,8 @@ export const updateTask = async (taskId, updates) => {
         await updateDoc(taskRef, updates);
         return { success: true };
     } catch (error) {
-        console.error('Error updating task:', error);
-        return { success: false, error: error.message };
+        await logError({ module: 'tasks', operation: 'update', context: { taskId, updates }, error, type: ErrorType.Database });
+        return { success: false, error: error.message, code: error.code || 'db_error' };
     }
 };
 
@@ -160,8 +175,8 @@ export const deleteTask = async (taskId) => {
         await deleteDoc(doc(db, 'tasks', taskId));
         return { success: true };
     } catch (error) {
-        console.error('Error deleting task:', error);
-        return { success: false, error: error.message };
+        await logError({ module: 'tasks', operation: 'delete', context: { taskId }, error, type: ErrorType.Database });
+        return { success: false, error: error.message, code: error.code || 'db_error' };
     }
 };
 
@@ -173,7 +188,7 @@ export const getAllTasksForCategory = async (categoryId) => {
         const snapshot = await getDocs(q);
         return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     } catch (error) {
-        console.error('Error getting tasks:', error);
+        await logError({ module: 'tasks', operation: 'list_all', context: { categoryId }, error, type: ErrorType.Database });
         return [];
     }
 };

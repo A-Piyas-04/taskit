@@ -313,3 +313,19 @@ MIT License - feel free to use this project for personal or commercial purposes.
 **Built with ❤️ and ⚡ by the TaskIt Team**
 
 For support, email: support@taskit.app (example)
+### CRUD Error Codes and Responses
+
+- `validation_error`: Client input invalid (e.g., empty category name, task text too long)
+- `duplicate_category`: Category name already exists for the user (case-insensitive)
+- `auth_required`: Operation requires authentication
+- `db_error`: Firestore error (see `code` for provider-specific code)
+
+### Logging
+
+- Errors are logged to the console and persisted to the `logs` collection with timestamps and context.
+- See `lib/logging.js` for details.
+
+### Composite Indexes
+
+- For uniqueness checks, define a composite index on `categories(userId, normalizedName)` in Firebase.
+- Consider indexing for server-side ordering by `createdAt` if needed.
