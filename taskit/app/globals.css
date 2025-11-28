@@ -1,0 +1,110 @@
+:root {
+  --background: #050505;
+  --foreground: #e0e0e0;
+  --primary: #00ff9d;
+  /* Neon Green */
+  --secondary: #ff00ff;
+  /* Neon Pink */
+  --accent: #00ffff;
+  /* Cyan */
+  --surface: #121212;
+  --surface-hover: #1e1e1e;
+  --border: #333;
+  --glass: rgba(18, 18, 18, 0.8);
+  --font-mono: 'Courier New', monospace;
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+html,
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-mono);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Cyberpunk Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--background);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary);
+}
+
+/* Utilities */
+.neon-text {
+  text-shadow: 0 0 5px var(--primary), 0 0 10px var(--primary);
+}
+
+.neon-border {
+  border: 1px solid var(--primary);
+  box-shadow: 0 0 5px var(--primary);
+}
+
+.glass-panel {
+  background: var(--glass);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--border);
+}
+
+.btn {
+  background: transparent;
+  border: 1px solid var(--primary);
+  color: var(--primary);
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.btn:hover {
+  background: var(--primary);
+  color: var(--background);
+  box-shadow: 0 0 10px var(--primary);
+}
+
+.btn-secondary {
+  border-color: var(--secondary);
+  color: var(--secondary);
+}
+
+.btn-secondary:hover {
+  background: var(--secondary);
+  color: var(--background);
+  box-shadow: 0 0 10px var(--secondary);
+}
+
+.btn-danger {
+  border-color: #ff3333;
+  color: #ff3333;
+}
+
+.btn-danger:hover {
+  background: #ff3333;
+  color: white;
+  box-shadow: 0 0 10px #ff3333;
+}
