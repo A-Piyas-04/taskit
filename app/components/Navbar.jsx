@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { logout } from '@/lib/auth';
@@ -10,7 +9,6 @@ import { useRouter } from 'next/navigation';
 export default function Navbar() {
     const { user } = useAuth();
     const router = useRouter();
-    const [showShortcuts, setShowShortcuts] = useState(false);
 
     const handleLogout = async () => {
         try {
@@ -23,13 +21,6 @@ export default function Navbar() {
         }
     };
 
-    const shortcuts = [
-        { key: 'N', description: 'New Task (in category)' },
-        { key: 'C', description: 'New Category' },
-        { key: 'H', description: 'Toggle Highlight (in task)' },
-        { key: 'Esc', description: 'Close Modal' },
-    ];
-
     return (
         <header className="sticky top-0 z-50 glass-panel border-b-2 border-cyber-primary backdrop-blur-xl">
             <div className="container mx-auto px-4 sm:px-6 py-4 max-w-[1600px]">
@@ -37,12 +28,41 @@ export default function Navbar() {
                     {/* Logo */}
                     <Link href="/" className="flex items-center gap-3 sm:gap-4 group">
                         <div className="relative">
-                            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-cyber-primary to-cyber-secondary rounded-lg flex items-center justify-center transition-transform group-hover:scale-110 group-hover:rotate-6">
-                                <svg className="w-5 h-5 sm:w-7 sm:h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                            {/* Professional hexagonal logo with checkmark */}
+                            <div className="w-10 h-10 sm:w-12 sm:h-12 relative transition-transform group-hover:scale-110 group-hover:rotate-3">
+                                {/* Hexagon background */}
+                                <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100">
+                                    <defs>
+                                        <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                            <stop offset="0%" stopColor="#00f0ff" />
+                                            <stop offset="100%" stopColor="#5773ff" />
+                                        </linearGradient>
+                                        <filter id="glow">
+                                            <feGaussianBlur stdDeviation="2" result="coloredBlur" />
+                                            <feMerge>
+                                                <feMergeNode in="coloredBlur" />
+                                                <feMergeNode in="SourceGraphic" />
+                                            </feMerge>
+                                        </filter>
+                                    </defs>
+                                    {/* Hexagon shape */}
+                                    <path
+                                        d="M50 5 L85 27.5 L85 72.5 L50 95 L15 72.5 L15 27.5 Z"
+                                        fill="url(#logoGradient)"
+                                        filter="url(#glow)"
+                                        className="drop-shadow-lg"
+                                    />
+                                    {/* Checkmark */}
+                                    <path
+                                        d="M35 50 L45 60 L65 35"
+                                        fill="none"
+                                        stroke="white"
+                                        strokeWidth="6"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                    />
                                 </svg>
                             </div>
-                            <div className="absolute -top-1 -right-1 w-3 h-3 bg-cyber-success rounded-full animate-pulse" aria-hidden="true"></div>
                         </div>
                         <div>
                             <h1 className="text-xl sm:text-2xl font-heading font-bold neon-text">
@@ -56,36 +76,19 @@ export default function Navbar() {
 
                     {/* Actions */}
                     <div className="flex items-center gap-2 sm:gap-4">
-                        {/* Keyboard Shortcuts */}
-                        <div className="relative">
-                            <button
-                                onClick={() => setShowShortcuts(!showShortcuts)}
-                                className="hidden md:flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg border border-cyber-borderSubtle hover:border-cyber-primary transition-all text-sm"
-                                aria-label="Keyboard shortcuts"
-                                aria-expanded={showShortcuts}
-                            >
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
-                                </svg>
-                                <span className="hidden lg:inline">Shortcuts</span>
-                            </button>
-
-                            {showShortcuts && (
-                                <div className="absolute right-0 top-full mt-2 w-64 glass-panel rounded-lg border border-cyber-primary p-4 animate-scale-in">
-                                    <h3 className="font-heading font-bold text-sm mb-3 text-cyber-primary">Keyboard Shortcuts</h3>
-                                    <div className="space-y-2">
-                                        {shortcuts.map((shortcut) => (
-                                            <div key={shortcut.key} className="flex items-center justify-between text-sm">
-                                                <span className="text-cyber-textMuted">{shortcut.description}</span>
-                                                <kbd className="px-2 py-1 bg-cyber-surface rounded border border-cyber-borderSubtle font-mono text-xs">
-                                                    {shortcut.key}
-                                                </kbd>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-                        </div>
+                        {/* Meet the Dev Button */}
+                        <a
+                            href="https://ahnaf-s-p.vercel.app/"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="hidden md:flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg border border-cyber-borderSubtle hover:border-cyber-accent hover:bg-cyber-accent/10 transition-all text-sm group"
+                            aria-label="Visit developer portfolio"
+                        >
+                            <svg className="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                            </svg>
+                            <span className="hidden lg:inline font-medium">Meet the Dev</span>
+                        </a>
 
                         {user ? (
                             <div className="flex items-center gap-3 pl-4 border-l border-cyber-borderSubtle">
@@ -115,15 +118,6 @@ export default function Navbar() {
                     </div>
                 </div>
             </div>
-
-            {/* Close shortcuts dropdown when clicking outside */}
-            {showShortcuts && (
-                <div
-                    className="fixed inset-0 z-40"
-                    onClick={() => setShowShortcuts(false)}
-                    aria-hidden="true"
-                />
-            )}
         </header>
     );
 }
