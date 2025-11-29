@@ -67,8 +67,8 @@ export default function TaskItem({ task, index, colorScheme }) {
         <>
             <div
                 className={`group relative p-4 rounded-lg border-2 transition-all duration-300 cursor-pointer animate-slide-in ${task.highlighted
-                        ? `${colorScheme.border} bg-gradient-to-br from-cyber-surface to-cyber-surfaceLight shadow-lg shadow-${colorScheme.bg}/20`
-                        : 'border-cyber-borderSubtle bg-cyber-surface hover:border-cyber-border hover:bg-cyber-surfaceLight'
+                    ? `${colorScheme.border} bg-gradient-to-br from-light-surface to-light-surfaceHover dark:from-cyber-surface dark:to-cyber-surfaceLight shadow-lg shadow-${colorScheme.bg}/20`
+                    : 'border-light-border dark:border-cyber-borderSubtle bg-light-surface dark:bg-cyber-surface hover:border-light-categoryBorder dark:hover:border-cyber-border hover:bg-light-surfaceHover dark:hover:bg-cyber-surfaceLight'
                     }`}
                 style={{ animationDelay: `${index * 0.05}s` }}
             >
@@ -86,8 +86,8 @@ export default function TaskItem({ task, index, colorScheme }) {
                         <button
                             onClick={handleToggleStatus}
                             className={`flex-shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center transition-all mt-0.5 ${task.completed
-                                    ? 'bg-cyber-success border-cyber-success'
-                                    : 'border-cyber-border hover:border-cyber-primary'
+                                ? 'bg-light-success dark:bg-cyber-success border-light-success dark:border-cyber-success'
+                                : 'border-light-border dark:border-cyber-border hover:border-light-categoryHeading dark:hover:border-cyber-primary'
                                 }`}
                             aria-label={task.completed ? "Mark as incomplete" : "Mark as complete"}
                             aria-pressed={task.completed}
@@ -105,8 +105,8 @@ export default function TaskItem({ task, index, colorScheme }) {
                         <p
                             onClick={() => setIsEditOpen(true)}
                             className={`text-sm leading-relaxed break-words transition-all ${task.completed
-                                    ? 'line-through opacity-50'
-                                    : 'text-cyber-text hover:text-cyber-primary'
+                                ? 'line-through opacity-50 text-light-text dark:text-cyber-text'
+                                : 'text-light-text dark:text-cyber-text hover:text-light-categoryHeading dark:hover:text-cyber-primary'
                                 }`}
                             role="button"
                             tabIndex={0}
@@ -121,7 +121,7 @@ export default function TaskItem({ task, index, colorScheme }) {
                         <Tooltip content={task.highlighted ? "Remove highlight (H)" : "Highlight task (H)"}>
                             <button
                                 onClick={handleToggleHighlight}
-                                className={`p-1.5 rounded hover:bg-cyber-surfaceLight transition-colors ${task.highlighted ? colorScheme.text : 'text-cyber-textMuted hover:text-cyber-warning'
+                                className={`p-1.5 rounded hover:bg-light-surfaceHover dark:hover:bg-cyber-surfaceLight transition-colors ${task.highlighted ? colorScheme.text : 'text-light-textMuted dark:text-cyber-textMuted hover:text-light-warning dark:hover:text-cyber-warning'
                                     }`}
                                 aria-label={task.highlighted ? "Remove highlight" : "Highlight task"}
                                 aria-pressed={task.highlighted}
@@ -134,7 +134,7 @@ export default function TaskItem({ task, index, colorScheme }) {
                         <Tooltip content="Edit task">
                             <button
                                 onClick={() => setIsEditOpen(true)}
-                                className="p-1.5 rounded hover:bg-cyber-surfaceLight transition-colors text-cyber-textMuted hover:text-cyber-primary"
+                                className="p-1.5 rounded hover:bg-light-surfaceHover dark:hover:bg-cyber-surfaceLight transition-colors text-light-textMuted dark:text-cyber-textMuted hover:text-light-categoryHeading dark:hover:text-cyber-primary"
                                 aria-label="Edit task"
                             >
                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -145,7 +145,7 @@ export default function TaskItem({ task, index, colorScheme }) {
                         <Tooltip content="Delete task">
                             <button
                                 onClick={() => setIsDeleteOpen(true)}
-                                className="p-1.5 rounded hover:bg-cyber-surfaceLight transition-colors text-cyber-textMuted hover:text-cyber-danger"
+                                className="p-1.5 rounded hover:bg-light-surfaceHover dark:hover:bg-cyber-surfaceLight transition-colors text-light-textMuted dark:text-cyber-textMuted hover:text-light-danger dark:hover:text-cyber-danger"
                                 aria-label="Delete task"
                             >
                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -168,7 +168,7 @@ export default function TaskItem({ task, index, colorScheme }) {
             >
                 <form onSubmit={handleUpdate} className="space-y-6">
                     <div>
-                        <label htmlFor="edit-task-text" className="block text-sm font-semibold mb-2">
+                        <label htmlFor="edit-task-text" className="block text-sm font-semibold mb-2 text-light-text dark:text-cyber-text">
                             Task Description
                         </label>
                         <textarea
@@ -180,7 +180,7 @@ export default function TaskItem({ task, index, colorScheme }) {
                             rows={4}
                             maxLength={500}
                         />
-                        <p className="mt-2 text-xs text-cyber-textMuted">
+                        <p className="mt-2 text-xs text-light-textMuted dark:text-cyber-textMuted">
                             {editText.length}/500 characters
                         </p>
                     </div>
@@ -209,11 +209,11 @@ export default function TaskItem({ task, index, colorScheme }) {
                 title="Delete Task"
             >
                 <div className="space-y-6">
-                    <p className="text-cyber-text">
+                    <p className="text-light-text dark:text-cyber-text">
                         Are you sure you want to delete this task? This action cannot be undone.
                     </p>
-                    <div className="p-4 bg-cyber-surface rounded-lg border border-cyber-borderSubtle">
-                        <p className="text-sm text-cyber-textMuted italic">&quot;{task.text}&quot;</p>
+                    <div className="p-4 bg-light-surfaceHover dark:bg-cyber-surface rounded-lg border border-light-border dark:border-cyber-borderSubtle">
+                        <p className="text-sm text-light-textMuted dark:text-cyber-textMuted italic">&quot;{task.text}&quot;</p>
                     </div>
                     <div className="flex justify-end gap-3">
                         <button onClick={() => setIsDeleteOpen(false)} className="btn btn-secondary">

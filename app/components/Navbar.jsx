@@ -2,12 +2,14 @@
 
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
+import { useTheme } from '@/context/ThemeContext';
 import { logout } from '@/lib/auth';
 import { toast } from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
 
 export default function Navbar() {
     const { user } = useAuth();
+    const { theme, toggleTheme } = useTheme();
     const router = useRouter();
 
     const handleLogout = async () => {
@@ -22,7 +24,7 @@ export default function Navbar() {
     };
 
     return (
-        <header className="sticky top-0 z-50 glass-panel border-b-2 border-cyber-primary backdrop-blur-xl">
+        <header className="sticky top-0 z-50 glass-panel border-b-2 border-light-categoryBorder dark:border-cyber-primary backdrop-blur-xl">
             <div className="container mx-auto px-4 sm:px-6 py-4 max-w-[1600px]">
                 <div className="flex items-center justify-between">
                     {/* Logo */}
@@ -68,7 +70,7 @@ export default function Navbar() {
                             <h1 className="text-xl sm:text-2xl font-heading font-bold neon-text">
                                 TaskIt
                             </h1>
-                            <p className="text-xs text-cyber-textMuted hidden sm:block">
+                            <p className="text-xs text-light-textMuted dark:text-cyber-textMuted hidden sm:block">
                                 Project Management
                             </p>
                         </div>
@@ -76,12 +78,30 @@ export default function Navbar() {
 
                     {/* Actions */}
                     <div className="flex items-center gap-2 sm:gap-4">
+                        {/* Theme Toggle Button */}
+                        <button
+                            onClick={toggleTheme}
+                            className="p-2 rounded-lg border border-light-border dark:border-cyber-borderSubtle hover:border-light-categoryBorder dark:hover:border-cyber-primary hover:bg-light-categoryBorder/10 dark:hover:bg-cyber-primary/10 transition-all group"
+                            aria-label="Toggle theme"
+                            title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+                        >
+                            {theme === 'dark' ? (
+                                <svg className="w-5 h-5 dark:text-cyber-primary group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                                </svg>
+                            ) : (
+                                <svg className="w-5 h-5 text-light-categoryHeading group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                                </svg>
+                            )}
+                        </button>
+
                         {/* Meet the Dev Button */}
                         <a
                             href="https://ahnaf-s-p.vercel.app/"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="hidden md:flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg border border-cyber-borderSubtle hover:border-cyber-accent hover:bg-cyber-accent/10 transition-all text-sm group"
+                            className="hidden md:flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg border border-light-border dark:border-cyber-borderSubtle hover:border-light-categoryBorder dark:hover:border-cyber-accent hover:bg-light-categoryBorder/10 dark:hover:bg-cyber-accent/10 transition-all text-sm group"
                             aria-label="Visit developer portfolio"
                         >
                             <svg className="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -91,14 +111,14 @@ export default function Navbar() {
                         </a>
 
                         {user ? (
-                            <div className="flex items-center gap-3 pl-4 border-l border-cyber-borderSubtle">
+                            <div className="flex items-center gap-3 pl-4 border-l border-light-border dark:border-cyber-borderSubtle">
                                 <div className="hidden sm:block text-right">
-                                    <p className="text-sm font-bold text-cyber-text">{user.displayName || 'User'}</p>
-                                    <p className="text-xs text-cyber-textMuted truncate max-w-[150px]">{user.email}</p>
+                                    <p className="text-sm font-bold text-light-text dark:text-cyber-text">{user.displayName || 'User'}</p>
+                                    <p className="text-xs text-light-textMuted dark:text-cyber-textMuted truncate max-w-[150px]">{user.email}</p>
                                 </div>
                                 <button
                                     onClick={handleLogout}
-                                    className="p-2 rounded-lg border border-cyber-borderSubtle hover:border-cyber-danger hover:text-cyber-danger transition-all"
+                                    className="p-2 rounded-lg border border-light-border dark:border-cyber-borderSubtle hover:border-light-danger dark:hover:border-cyber-danger hover:text-light-danger dark:hover:text-cyber-danger transition-all"
                                     aria-label="Log out"
                                     title="Log out"
                                 >

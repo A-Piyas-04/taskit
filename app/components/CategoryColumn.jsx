@@ -5,7 +5,6 @@ import { useAuth } from '@/context/AuthContext';
 import { subscribeToTasks, addTask, updateCategory, deleteCategory } from '@/lib/firestore';
 import TaskItem from './TaskItem';
 import Modal from './Modal';
-import ToggleSwitch from './ToggleSwitch';
 import Tooltip from './Tooltip';
 import { toast } from 'react-hot-toast';
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
@@ -71,8 +70,12 @@ export default function CategoryColumn({ category, index }) {
     const highlightedTasks = tasks.filter(t => t.highlighted).length;
     const totalTasks = tasks.length;
 
-    // All categories use cyan (cyber-primary) color scheme
-    const colorScheme = { border: 'border-cyan-500', text: 'text-cyan-400', bg: 'bg-cyan-500' };
+    // Color scheme: Cyan for dark mode, Navy Blue/Blue for light mode
+    const colorScheme = {
+        border: 'border-light-categoryBorder dark:border-cyan-500',
+        text: 'text-light-categoryHeading dark:text-cyan-400',
+        bg: 'bg-light-categoryHeading dark:bg-cyan-500'
+    };
 
     return (
         <>
@@ -81,7 +84,7 @@ export default function CategoryColumn({ category, index }) {
                 style={{ animationDelay: `${index * 0.1}s` }}
             >
                 {/* Header */}
-                <div className="p-5 border-b border-cyber-borderSubtle">
+                <div className="p-5 border-b border-light-border dark:border-cyber-borderSubtle">
                     <div className="flex items-start justify-between mb-3">
                         <button
                             onClick={() => setIsExpanded(!isExpanded)}
@@ -111,10 +114,10 @@ export default function CategoryColumn({ category, index }) {
                             <Tooltip content="Toggle visibility">
                                 <button
                                     onClick={handleToggleVisibility}
-                                    className="p-2 hover:bg-cyan-500/20 rounded-lg transition-all hover:scale-110 group"
+                                    className="p-2 hover:bg-light-categoryHeading/10 dark:hover:bg-cyan-500/20 rounded-lg transition-all hover:scale-110 group"
                                     aria-label={category.hidden ? "Show category" : "Hide category"}
                                 >
-                                    <svg className="w-5 h-5 text-cyan-400 group-hover:text-cyan-300 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg className="w-5 h-5 text-light-categoryHeading dark:text-cyan-400 group-hover:text-light-categoryHeading dark:group-hover:text-cyan-300 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         {category.hidden ? (
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
                                         ) : (
@@ -129,7 +132,7 @@ export default function CategoryColumn({ category, index }) {
                             <Tooltip content="Delete category">
                                 <button
                                     onClick={() => setIsDeleteOpen(true)}
-                                    className="p-1.5 hover:bg-cyber-surfaceLight rounded transition-colors text-cyber-danger hover:text-cyber-danger"
+                                    className="p-1.5 hover:bg-light-surfaceHover dark:hover:bg-cyber-surfaceLight rounded transition-colors text-light-danger dark:text-cyber-danger hover:text-cyber-danger"
                                     aria-label="Delete category"
                                 >
                                     <svg className="w-4 h-4 opacity-60 hover:opacity-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -144,22 +147,22 @@ export default function CategoryColumn({ category, index }) {
                     <div className="flex items-center gap-4 text-xs">
                         <div className="flex items-center gap-1.5">
                             <div className={`w-2 h-2 rounded-full ${colorScheme.bg}`}></div>
-                            <span className="text-cyber-textMuted">{totalTasks} tasks</span>
+                            <span className="text-light-textMuted dark:text-cyber-textMuted">{totalTasks} tasks</span>
                         </div>
                         {totalTasks > 0 && (
                             <>
                                 <div className="flex items-center gap-1.5">
-                                    <svg className="w-3 h-3 text-cyber-success" fill="currentColor" viewBox="0 0 20 20">
+                                    <svg className="w-3 h-3 text-light-success dark:text-cyber-success" fill="currentColor" viewBox="0 0 20 20">
                                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                                     </svg>
-                                    <span className="text-cyber-textMuted">{completedTasks} done</span>
+                                    <span className="text-light-textMuted dark:text-cyber-textMuted">{completedTasks} done</span>
                                 </div>
                                 {highlightedTasks > 0 && (
                                     <div className="flex items-center gap-1.5">
-                                        <svg className="w-3 h-3 text-cyber-warning" fill="currentColor" viewBox="0 0 20 20">
+                                        <svg className="w-3 h-3 text-light-warning dark:text-cyber-warning" fill="currentColor" viewBox="0 0 20 20">
                                             <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                                         </svg>
-                                        <span className="text-cyber-textMuted">{highlightedTasks} starred</span>
+                                        <span className="text-light-textMuted dark:text-cyber-textMuted">{highlightedTasks} starred</span>
                                     </div>
                                 )}
                             </>
@@ -172,15 +175,15 @@ export default function CategoryColumn({ category, index }) {
                     <div className="p-4 space-y-3 min-h-[200px] max-h-[600px] overflow-y-auto custom-scrollbar">
                         {tasks.length === 0 ? (
                             <div className="flex flex-col items-center justify-center py-12 text-center">
-                                <div className="w-16 h-16 mb-3 rounded-full bg-cyber-surface flex items-center justify-center opacity-40">
+                                <div className="w-16 h-16 mb-3 rounded-full bg-light-surfaceHover dark:bg-cyber-surface flex items-center justify-center opacity-40">
                                     <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                     </svg>
                                 </div>
-                                <p className="text-sm text-cyber-textMuted mb-3">No tasks yet</p>
+                                <p className="text-sm text-light-textMuted dark:text-cyber-textMuted mb-3">No tasks yet</p>
                                 <button
                                     onClick={() => setIsAddTaskOpen(true)}
-                                    className="text-xs text-cyber-primary hover:text-cyber-primary/80 flex items-center gap-1"
+                                    className="text-xs text-light-categoryHeading dark:text-cyber-primary hover:opacity-80 flex items-center gap-1"
                                 >
                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -203,16 +206,16 @@ export default function CategoryColumn({ category, index }) {
 
                 {/* Add Task Button */}
                 {isExpanded && (
-                    <div className="p-4 border-t border-cyber-borderSubtle">
+                    <div className="p-4 border-t border-light-border dark:border-cyber-borderSubtle">
                         <button
                             onClick={() => setIsAddTaskOpen(true)}
-                            className="w-full py-2.5 px-4 rounded-lg border-2 border-dashed border-cyber-borderSubtle hover:border-cyber-primary text-cyber-textMuted hover:text-cyber-text transition-all flex items-center justify-center gap-2 text-sm font-medium group"
+                            className="w-full py-2.5 px-4 rounded-lg border-2 border-dashed border-light-border dark:border-cyber-borderSubtle hover:border-light-categoryHeading dark:hover:border-cyber-primary text-light-textMuted dark:text-cyber-textMuted hover:text-light-text dark:hover:text-cyber-text transition-all flex items-center justify-center gap-2 text-sm font-medium group"
                         >
                             <svg className="w-4 h-4 transition-transform group-hover:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                             </svg>
                             Add Task
-                            <kbd className="ml-2 px-2 py-0.5 text-xs bg-cyber-surface rounded border border-cyber-borderSubtle hidden md:inline">N</kbd>
+                            <kbd className="ml-2 px-2 py-0.5 text-xs bg-light-surface dark:bg-cyber-surface rounded border border-light-border dark:border-cyber-borderSubtle hidden md:inline">N</kbd>
                         </button>
                     </div>
                 )}
@@ -229,7 +232,7 @@ export default function CategoryColumn({ category, index }) {
             >
                 <form onSubmit={handleAddTask} className="space-y-6">
                     <div>
-                        <label htmlFor="task-text" className="block text-sm font-semibold mb-2">
+                        <label htmlFor="task-text" className="block text-sm font-semibold mb-2 text-light-text dark:text-cyber-text">
                             Task Description
                         </label>
                         <textarea
@@ -242,7 +245,7 @@ export default function CategoryColumn({ category, index }) {
                             rows={4}
                             maxLength={500}
                         />
-                        <p className="mt-2 text-xs text-cyber-textMuted">
+                        <p className="mt-2 text-xs text-light-textMuted dark:text-cyber-textMuted">
                             {newTaskText.length}/500 characters
                         </p>
                     </div>
@@ -272,11 +275,11 @@ export default function CategoryColumn({ category, index }) {
             >
                 <div className="space-y-6">
                     <div className="p-4 bg-cyber-danger/10 border border-cyber-danger/30 rounded-lg">
-                        <p className="text-cyber-text text-sm">
+                        <p className="text-light-text dark:text-cyber-text text-sm">
                             Are you sure you want to delete <strong className="text-cyber-danger">{category.name}</strong>?
                             This will also delete all <strong>{totalTasks}</strong> {totalTasks === 1 ? 'task' : 'tasks'} in this category.
                         </p>
-                        <p className="text-cyber-textMuted text-sm mt-2">
+                        <p className="text-light-textMuted dark:text-cyber-textMuted text-sm mt-2">
                             This action cannot be undone.
                         </p>
                     </div>

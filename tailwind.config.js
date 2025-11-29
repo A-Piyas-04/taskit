@@ -1,5 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
+    darkMode: 'class',
     content: [
         './pages/**/*.{js,ts,jsx,tsx,mdx}',
         './components/**/*.{js,ts,jsx,tsx,mdx}',
@@ -9,10 +10,10 @@ module.exports = {
         extend: {
             colors: {
                 cyber: {
-                    bg: '#0a0e27',
-                    bgLight: '#0f1729',
-                    surface: '#1a1f3a',
-                    surfaceLight: '#252b4a',
+                    bg: '#040609',
+                    bgLight: '#080b12',
+                    surface: '#0d111f',
+                    surfaceLight: '#15192b',
                     primary: '#00d9ff',
                     primaryGlow: 'rgba(0, 217, 255, 0.4)',
                     secondary: '#ff2e97',
@@ -25,6 +26,20 @@ module.exports = {
                     textMuted: '#8b92b0',
                     border: 'rgba(0, 217, 255, 0.2)',
                     borderSubtle: 'rgba(255, 255, 255, 0.1)',
+                },
+                light: {
+                    bg: '#f8fafc',
+                    surface: '#ffffff',
+                    surfaceHover: '#f1f5f9',
+                    text: '#000000',
+                    textMuted: '#000000',
+                    border: '#e2e8f0',
+                    borderSubtle: '#cbd5e1',
+                    categoryBorder: '#1e40af',
+                    categoryHeading: '#3b82f6',
+                    success: '#10b981',
+                    warning: '#f59e0b',
+                    danger: '#ef4444',
                 }
             },
             fontFamily: {

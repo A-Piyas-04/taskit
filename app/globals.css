@@ -10,13 +10,14 @@
     }
 
     body {
-        @apply bg-cyber-bg text-cyber-text font-body antialiased;
+        @apply bg-light-bg text-light-text dark:bg-cyber-bg dark:text-cyber-text font-body antialiased;
         position: relative;
         min-height: 100vh;
+        transition: background-color 0.3s ease, color 0.3s ease;
     }
 
-    /* Animated Background */
-    body::before {
+    /* Animated Background - Dark Mode */
+    .dark body::before {
         content: '';
         position: fixed;
         top: 0;
@@ -31,7 +32,7 @@
         pointer-events: none;
     }
 
-    body::after {
+    .dark body::after {
         content: '';
         position: fixed;
         top: 0;
@@ -45,6 +46,21 @@
         z-index: 0;
         pointer-events: none;
         animation: gridMove 20s linear infinite;
+    }
+
+    /* Light Mode Background */
+    body::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: 
+            radial-gradient(circle at 20% 50%, rgba(59, 130, 246, 0.04) 0%, transparent 50%),
+            radial-gradient(circle at 80% 80%, rgba(30, 64, 175, 0.03) 0%, transparent 50%);
+        z-index: 0;
+        pointer-events: none;
     }
 
     h1,
@@ -61,7 +77,13 @@
 
     /* Glass Panel */
     .glass-panel {
-        @apply bg-cyber-surface/70 backdrop-blur-xl border border-cyber-border shadow-2xl;
+        @apply bg-light-surface dark:bg-cyber-surface/70 backdrop-blur-xl border border-light-border dark:border-cyber-border shadow-2xl;
+        transition: background-color 0.3s ease, border-color 0.3s ease;
+    }
+
+    /* Toast Notification */
+    .toast-custom {
+        @apply glass-panel border-light-categoryBorder dark:border-cyber-primary;
     }
 
     /* Neon Text */
@@ -85,10 +107,14 @@
     }
 
     .btn-primary {
-        @apply border-2 border-cyber-primary text-cyber-primary hover:bg-cyber-primary hover:text-cyber-bg;
+        @apply border-2 border-light-categoryBorder dark:border-cyber-primary text-light-categoryBorder dark:text-cyber-primary hover:bg-light-categoryBorder dark:hover:bg-cyber-primary hover:text-white dark:hover:text-cyber-bg;
     }
 
     .btn-primary:hover {
+        box-shadow: 0 2px 8px rgba(30, 64, 175, 0.2);
+    }
+
+    .dark .btn-primary:hover {
         box-shadow: 0 0 20px rgba(0, 217, 255, 0.4), 0 0 40px rgba(0, 217, 255, 0.4);
     }
 
@@ -118,11 +144,18 @@
 
     /* Input Fields */
     .input {
-        @apply w-full bg-cyber-surface border-2 border-cyber-borderSubtle text-cyber-text px-4 py-3 rounded-lg font-body transition-all duration-300 outline-none;
+        @apply w-full bg-light-surface dark:bg-cyber-surface border-2 border-light-border dark:border-cyber-borderSubtle text-light-text dark:text-cyber-text px-4 py-3 rounded-lg font-body transition-all duration-300 outline-none;
     }
 
     .input:focus {
-        @apply border-cyber-primary;
+        @apply border-light-categoryBorder dark:border-cyber-primary;
+    }
+
+    .input:focus {
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+    }
+
+    .dark .input:focus {
         box-shadow: 0 0 0 3px rgba(0, 217, 255, 0.2);
     }
 
